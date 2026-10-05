@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Autorização Mercado Livre</title>
+<style>
+  :root { --fundo: #f4f5f7; --cartao: #fff; --texto: #1f2328; --suave: #59636e; --borda: #d0d7de; --destaque: #2d6cdf; --ok: #1a7f37; --erro: #cf222e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fundo: #0d1117; --cartao: #161b22; --texto: #e6edf3; --suave: #9198a1; --borda: #30363d; --destaque: #4c8dff; --ok: #3fb950; --erro: #f85149; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--fundo); color: var(--texto); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { width: 100%; max-width: 560px; background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 28px; }
+  h1 { font-size: 1.25rem; margin: 0 0 8px; }
+  p { margin: 0 0 16px; color: var(--suave); }
+  .codigo { display: flex; gap: 8px; margin: 0 0 12px; }
+  .codigo input { flex: 1; min-width: 0; padding: 12px; font: 15px ui-monospace, Consolas, monospace; color: var(--texto); background: var(--fundo); border: 1px solid var(--borda); border-radius: 8px; }
+  button { padding: 12px 18px; font: inherit; font-weight: 600; color: #fff; background: var(--destaque); border: 0; border-radius: 8px; cursor: pointer; }
+  .aviso { font-size: .9rem; }
+  .ok { color: var(--ok); }
+  .erro { color: var(--erro); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <section id="comCodigo" hidden>
+    <h1>Autorização concluída</h1>
+    <p>Copie o código abaixo e cole na ferramenta de anúncios, no campo de autorização do Mercado Livre.</p>
+    <div class="codigo">
+      <input id="code" readonly aria-label="Código de autorização">
+      <button id="copiar" type="button">Copiar</button>
+    </div>
+    <p class="aviso" id="status">O código vale por poucos minutos e só pode ser usado uma vez.</p>
+  </section>
+
+  <section id="comErro" hidden>
+    <h1 class="erro">Autorização não concluída</h1>
+    <p id="mensagemErro"></p>
+    <p>Gere um novo link de autorização na ferramenta e tente de novo.</p>
+  </section>
+
+  <section id="semNada">
+    <h1>Portal RV</h1>
+    <p>Página de retorno da autorização do Mercado Livre. Não há nada para fazer aqui.</p>
+  </section>
+</main>
+<script>
+  // O Mercado Livre volta para esta pagina com ?code=...&state=... depois do "Permitir".
+  // O codigo so funciona junto com o Secret e o PKCE guardados no portal.
+  const q = new URLSearchParams(location.search);
+  const code = q.get('code');
+  const erro = q.get('error');
+  const mostrar = (id) => {
+    for (const s of ['comCodigo', 'comErro', 'semNada']) document.getElementById(s).hidden = s !== id;
+  };
+
+  if (code) {
+    mostrar('comCodigo');
+    const campo = document.getElementById('code');
+    const status = document.getElementById('status');
+    campo.value = code;
+    campo.addEventListener('focus', () => campo.select());
+    document.getElementById('copiar').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch (e) {
+        campo.select();
+        document.execCommand('copy');
+      }
+      status.textContent = 'Código copiado. Cole na ferramenta de anúncios.';
+      status.className = 'aviso ok';
+    });
+    // Tira o codigo da barra de endereco, para nao ficar no historico do navegador.
+    history.replaceState(null, '', location.pathname);
+  } else if (erro) {
+    mostrar('comErro');
+    document.getElementById('mensagemErro').textContent = q.get('error_description') || erro;
+    history.replaceState(null, '', location.pathname);
+  }
+</script>
+</body>
+</html>
