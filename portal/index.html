@@ -24,8 +24,8 @@
 <main>
   <h1>Abrindo o Portal RV&hellip;</h1>
   <p>O portal s&oacute; abre com a VPN ligada, inclusive dentro da empresa. Se n&atilde;o abrir sozinho, clique no bot&atilde;o.</p>
-  <p><a class="botao" id="ir" href="http://10.0.8.17:8000/">Abrir o portal</a></p>
-  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.17:8000/ (atualizado em 29/10/2026 14:53)</p>
+  <p><a class="botao" id="ir" href="http://10.0.8.8:8000/">Abrir o portal</a></p>
+  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.8:8000/ (atualizado em 29/10/2026 18:15)</p>
 </main>
 <script>
   // O endereco embutido acima pode estar em cache do navegador; ip.json busca o mais novo.
@@ -36,7 +36,7 @@
       document.getElementById('info').textContent = 'Endereço atual: ' + d.url + ' (atualizado em ' + d.atualizado + ')';
       ir(d.url);
     })
-    .catch(() => ir('http://10.0.8.17:8000/'));
+    .catch(() => ir('http://10.0.8.8:8000/'));
 </script>
 </body>
 </html>
