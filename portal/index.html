@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Portal RV</title>
+<style>
+  :root { --fundo: #f4f5f7; --cartao: #fff; --texto: #1f2328; --suave: #59636e; --borda: #d0d7de; --destaque: #2d6cdf; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fundo: #0d1117; --cartao: #161b22; --texto: #e6edf3; --suave: #9198a1; --borda: #30363d; --destaque: #4c8dff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--fundo); color: var(--texto); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { width: 100%; max-width: 480px; background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 28px; }
+  h1 { font-size: 1.25rem; margin: 0 0 8px; }
+  p { margin: 0 0 12px; color: var(--suave); }
+  a.botao { display: inline-block; padding: 12px 18px; font-weight: 600; color: #fff; background: var(--destaque); border-radius: 8px; text-decoration: none; }
+  .aviso { font-size: .875rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Abrindo o Portal RV&hellip;</h1>
+  <p>Se n&atilde;o abrir sozinho, clique no bot&atilde;o. &Eacute; preciso estar conectado na VPN.</p>
+  <p><a class="botao" id="ir" href="http://10.0.8.2:8000/">Abrir o portal</a></p>
+  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.2:8000/ (atualizado em 29/10/2026 11:08)</p>
+</main>
+<script>
+  // O endereco embutido acima pode estar em cache do navegador; ip.json busca o mais novo.
+  const ir = (url) => { document.getElementById('ir').href = url; location.replace(url); };
+  fetch('ip.json?t=' + Date.now(), { cache: 'no-store' })
+    .then((r) => r.json())
+    .then((d) => {
+      document.getElementById('info').textContent = 'EndereÃ§o atual: ' + d.url + ' (atualizado em ' + d.atualizado + ')';
+      ir(d.url);
+    })
+    .catch(() => ir('http://10.0.8.2:8000/'));
+</script>
+</body>
+</html>
