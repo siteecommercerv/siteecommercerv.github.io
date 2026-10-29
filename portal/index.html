@@ -16,69 +16,27 @@
   main { width: 100%; max-width: 480px; background: var(--cartao); border: 1px solid var(--borda); border-radius: 12px; padding: 28px; }
   h1 { font-size: 1.25rem; margin: 0 0 8px; }
   p { margin: 0 0 12px; color: var(--suave); }
-  .opcoes { display: grid; gap: 10px; margin: 0 0 16px; }
-  a.botao { display: block; padding: 12px 18px; font-weight: 600; color: #fff; background: var(--destaque); border-radius: 8px; text-decoration: none; text-align: center; }
-  a.botao small { display: block; font-weight: 400; opacity: .85; }
+  a.botao { display: inline-block; padding: 12px 18px; font-weight: 600; color: #fff; background: var(--destaque); border-radius: 8px; text-decoration: none; }
   .aviso { font-size: .875rem; }
-  .aviso a { color: var(--destaque); }
-  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 <main>
-  <section id="escolha">
-    <h1>Portal RV</h1>
-    <p>Onde voc&ecirc; est&aacute; agora?</p>
-    <div class="opcoes">
-      <a class="botao" id="local" data-onde="local" href="http://192.168.0.175:8000/">Na empresa<small>rede do escrit&oacute;rio</small></a>
-      <a class="botao" id="vpn" data-onde="vpn" href="http://10.0.8.2:8000/">Fora da empresa<small>conectado na VPN</small></a>
-    </div>
-    <p class="aviso">A escolha fica salva neste navegador.</p>
-  </section>
-
-  <section id="abrindo" hidden>
-    <h1>Abrindo o Portal RV&hellip;</h1>
-    <p id="ondeTexto"></p>
-    <p class="aviso">N&atilde;o abriu? <a href="?escolher">Escolher outro acesso</a></p>
-  </section>
-
-  <p class="aviso" id="info">Atualizado em 29/10/2026 11:21</p>
+  <h1>Abrindo o Portal RV&hellip;</h1>
+  <p>O portal s&oacute; abre com a VPN ligada, inclusive dentro da empresa. Se n&atilde;o abrir sozinho, clique no bot&atilde;o.</p>
+  <p><a class="botao" id="ir" href="http://10.0.8.2:8000/">Abrir o portal</a></p>
+  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.2:8000/ (atualizado em 29/10/2026 11:58)</p>
 </main>
 <script>
-  // Os enderecos embutidos podem estar em cache; ip.json traz o IP mais novo da VPN.
-  const urls = { local: 'http://192.168.0.175:8000/', vpn: 'http://10.0.8.2:8000/' };
-  const nomes = { local: 'Acesso pela rede da empresa.', vpn: 'Acesso pela VPN.' };
-  const ler = () => { try { return localStorage.getItem('portalOnde'); } catch (e) { return null; } };
-  const salvar = (v) => { try { localStorage.setItem('portalOnde', v); } catch (e) {} };
-
-  const abrir = (onde) => {
-    document.getElementById('escolha').hidden = true;
-    document.getElementById('abrindo').hidden = false;
-    document.getElementById('ondeTexto').textContent = nomes[onde] + ' ' + urls[onde];
-    location.href = urls[onde];
-  };
-
-  const pronto = fetch('ip.json?t=' + Date.now(), { cache: 'no-store' })
+  // O endereco embutido acima pode estar em cache do navegador; ip.json busca o mais novo.
+  const ir = (url) => { document.getElementById('ir').href = url; location.replace(url); };
+  fetch('ip.json?t=' + Date.now(), { cache: 'no-store' })
     .then((r) => r.json())
     .then((d) => {
-      if (d.url) urls.vpn = d.url;
-      if (d.urlLocal) urls.local = d.urlLocal;
-      document.getElementById('vpn').href = urls.vpn;
-      document.getElementById('local').href = urls.local;
-      document.getElementById('info').textContent = 'Atualizado em ' + d.atualizado;
+      document.getElementById('info').textContent = 'Endereço atual: ' + d.url + ' (atualizado em ' + d.atualizado + ')';
+      ir(d.url);
     })
-    .catch(() => {});
-
-  for (const a of document.querySelectorAll('[data-onde]')) {
-    a.addEventListener('click', (ev) => {
-      ev.preventDefault();
-      salvar(a.dataset.onde);
-      pronto.then(() => abrir(a.dataset.onde));
-    });
-  }
-
-  const escolhido = ler();
-  if (escolhido && urls[escolhido] && !location.search.includes('escolher')) pronto.then(() => abrir(escolhido));
+    .catch(() => ir('http://10.0.8.2:8000/'));
 </script>
 </body>
 </html>
