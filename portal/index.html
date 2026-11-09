@@ -25,18 +25,48 @@
   <h1>Abrindo o Portal RV&hellip;</h1>
   <p>O portal s&oacute; abre com a VPN ligada, inclusive dentro da empresa. Se n&atilde;o abrir sozinho, clique no bot&atilde;o.</p>
   <p><a class="botao" id="ir" href="http://10.0.8.5:8000/">Abrir o portal</a></p>
-  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.5:8000/ (atualizado em 09/11/2026 15:16)</p>
+  <p class="aviso" id="info">Endere&ccedil;o atual: http://10.0.8.5:8000/ (atualizado em 09/11/2026 16:13)</p>
 </main>
 <script>
-  // O endereco embutido acima pode estar em cache do navegador; ip.json busca o mais novo.
-  const ir = (url) => { document.getElementById('ir').href = url; location.replace(url); };
-  fetch('ip.json?t=' + Date.now(), { cache: 'no-store' })
-    .then((r) => r.json())
-    .then((d) => {
-      document.getElementById('info').textContent = 'Endereço atual: ' + d.url + ' (atualizado em ' + d.atualizado + ')';
-      ir(d.url);
-    })
-    .catch(() => ir('http://10.0.8.5:8000/'));
+  // O endereco embutido acima pode estar velho: cache do navegador ou um deploy
+  // do GitHub Pages que falhou (aconteceu em 09/11/2026). Por isso le o ip.json
+  // de duas fontes e fica com o mais novo:
+  // - ip.json do proprio Pages (depende do deploy);
+  // - o mesmo arquivo direto do repositorio (raw), que vale logo apos o push.
+  const FONTES = [
+    'ip.json',
+    'https://raw.githubusercontent.com/siteecommercerv/siteecommercerv.github.io/main/portal/ip.json',
+  ];
+  const EMBUTIDO = { url: 'http://10.0.8.5:8000/', atualizado: '09/11/2026 16:13', ts: 1794251622010 };
+
+  // Arquivos antigos nao tem ts: converte "dd/mm/aaaa hh:mm".
+  const quando = (d) => {
+    if (d && d.ts) return Number(d.ts);
+    const m = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/.exec((d && d.atualizado) || '');
+    return m ? new Date(+m[3], m[2] - 1, +m[1], +m[4], +m[5]).getTime() : 0;
+  };
+
+  const buscar = (url) => {
+    const ctl = new AbortController();
+    const prazo = setTimeout(() => ctl.abort(), 5000);
+    return fetch(url + '?t=' + Date.now(), { cache: 'no-store', signal: ctl.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .finally(() => clearTimeout(prazo));
+  };
+
+  const ir = (d) => {
+    document.getElementById('ir').href = d.url;
+    document.getElementById('info').textContent = 'Endereço atual: ' + d.url + ' (atualizado em ' + d.atualizado + ')';
+    location.replace(d.url);
+  };
+
+  Promise.all(FONTES.map(buscar)).then((lidos) => {
+    const validos = lidos.filter((d) => d && /^http:\/\/10\.0\.8\.\d{1,3}:\d+\/$/.test(d.url));
+    validos.push(EMBUTIDO);
+    validos.sort((a, b) => quando(b) - quando(a));
+    ir(validos[0]);
+  });
 </script>
 </body>
 </html>
