@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Autorização Mercado Livre</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f4f6f9; color: #1d2433; }
+  @media (prefers-color-scheme: dark) { body { background: #12161d; color: #e6e9ef; } .caixa { background: #1b212b !important; border-color: #2c3542 !important; } textarea { background: #12161d !important; color: #e6e9ef !important; border-color: #2c3542 !important; } }
+  main { max-width: 640px; margin: 48px auto; padding: 0 16px; }
+  .caixa { background: #fff; border: 1px solid #dde2ea; border-radius: 10px; padding: 24px; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  p { line-height: 1.5; margin: 8px 0; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 96px; font: 13px/1.4 ui-monospace, Consolas, monospace; padding: 10px; border: 1px solid #c9d0db; border-radius: 6px; resize: vertical; }
+  button { margin-top: 12px; padding: 10px 18px; border: 0; border-radius: 6px; background: #2b5bd7; color: #fff; font-size: 15px; cursor: pointer; }
+  .ok { color: #1f8a4c; font-weight: 600; }
+  .erro { color: #c0392b; font-weight: 600; }
+  small { opacity: .75; }
+</style>
+</head>
+<body>
+<main>
+  <div class="caixa" id="caixa">
+    <h1>Autorização do Mercado Livre</h1>
+    <p id="msg">Lendo o retorno…</p>
+  </div>
+</main>
+<script>
+// Esta pagina NAO envia nada para lugar nenhum: so mostra o endereco de
+// retorno do Mercado Livre para ser copiado e colado na tela Contas da
+// ferramenta Inteligencia ML (que confere o state e troca o codigo).
+(function () {
+  var caixa = document.getElementById('caixa');
+  var msg = document.getElementById('msg');
+  var q = new URLSearchParams(location.search);
+  var code = q.get('code');
+  var erro = q.get('error');
+
+  function texto(tag, t, cls) { var e = document.createElement(tag); e.textContent = t; if (cls) e.className = cls; return e; }
+
+  if (erro) {
+    msg.replaceWith(texto('p', 'O Mercado Livre não autorizou: ' + erro + (q.get('error_description') ? ' (' + q.get('error_description') + ')' : ''), 'erro'));
+    caixa.appendChild(texto('p', 'Feche esta janela, gere um link novo na tela Contas e tente de novo.'));
+    return;
+  }
+  if (!code) {
+    msg.textContent = 'Nenhum código de autorização neste endereço. Esta página só serve como retorno da autorização do Mercado Livre.';
+    return;
+  }
+
+  var completo = location.href;
+  msg.replaceWith(texto('p', 'Autorização concedida.', 'ok'));
+  caixa.appendChild(texto('p', 'Copie o endereço abaixo e cole na tela Contas da Inteligência ML. O código vale poucos minutos e só pode ser usado uma vez.'));
+  var area = document.createElement('textarea');
+  area.readOnly = true;
+  area.value = completo;
+  caixa.appendChild(area);
+  var botao = texto('button', 'Copiar endereço');
+  botao.type = 'button';
+  botao.addEventListener('click', function () {
+    area.select();
+    var feito = function () { botao.textContent = 'Copiado'; };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(completo).then(feito, function () { document.execCommand('copy'); feito(); });
+    } else { document.execCommand('copy'); feito(); }
+  });
+  caixa.appendChild(botao);
+  caixa.appendChild(texto('p', 'Depois de colar, feche esta janela anônima.'));
+  var aviso = document.createElement('p');
+  aviso.appendChild(texto('small', 'Nada desta página é enviado para nenhum servidor.'));
+  caixa.appendChild(aviso);
+})();
+</script>
+</body>
+</html>
